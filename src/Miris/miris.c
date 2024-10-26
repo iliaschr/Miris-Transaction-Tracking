@@ -362,16 +362,32 @@ void miris_exit(Graph graph, const char* output_filename) {
         return;
     }
 
+    // Open the output file for writing
     FILE* output_file = fopen(output_filename, "w");
     if (!output_file) {
         fprintf(stderr, "Error: Could not open file %s for writing.\n", output_filename);
         return;
     }
 
+    // Write the graph's nodes and their edges to the output file
     for (size_t i = 0; i < graph->table_size; i++) {
         Node current = graph->hash_table[i];
         while (current) {
-            // Free edges
+            fprintf(output_file, "Node %s:\n", current->id); // Write the node ID
+            Edge edge = current->edges;
+            while (edge) {
+                fprintf(output_file, "  -> %s (amount: %d, date: %s)\n",
+                        edge->destination->id, edge->amount, edge->date);
+                edge = edge->next; // Move to the next edge
+            }
+            current = current->next_in_hash; // Move to the next node in the list
+        }
+    }
+
+    // Free edges
+    for (size_t i = 0; i < graph->table_size; i++) {
+        Node current = graph->hash_table[i];
+        while (current) {
             Edge edge = current->edges;
             while (edge) {
                 Edge next_edge = edge->next;
