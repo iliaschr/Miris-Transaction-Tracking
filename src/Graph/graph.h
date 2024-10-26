@@ -48,13 +48,13 @@ Node node_insert(Graph graph, const char* id);
 Node node_find(Graph graph, const char* id);
 
 // Remove a node and all associated edges from the graph
-void node_remove(Graph graph, const char* id);
+bool node_remove(Graph graph, const char* id);
 
 // Add an edge (transaction) between two nodes
 Edge edge_insert(Graph graph, const char* src_id, const char* dest_id, int amount, const char* date);
 
 // Remove a specific edge between two nodes
-void edge_remove(Graph graph, const char* src_id, const char* dest_id);
+bool edge_remove(Graph graph, const char* src_id, const char* dest_id);
 
 // Modify an existing edge's amount and date
 bool edge_modify(Graph graph, const char* src_id, const char* dest_id, int old_amount, int new_amount, const char* old_date, const char* new_date);

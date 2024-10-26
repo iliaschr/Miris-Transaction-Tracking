@@ -36,19 +36,14 @@ bool miris_delete2(Graph graph, const char* src_id, const char* dest_id)
     Node src_node = node_find(graph, src_id);
     if (!src_node)
     {
+        printf("Non-existing node(s): %s\n", src_id);
         return false;
     }
 
-    edge_remove(graph, src_id, dest_id);
-
-    Edge edge = src_node->edges;
-    while (edge)
+    if (!edge_remove(graph, src_id, dest_id))
     {
-        if (strcmp(edge->destination->id, dest_id) == 0)
-        {
-            return false;
-        }
-        edge = edge->next;
+        printf("Non-existing edge: %s -> %s\n", src_id, dest_id);
+        return false;
     }
 
     return true;
@@ -278,19 +273,24 @@ bool miris_traceflow(Graph graph, const char *node_id, int max_length)
     return true;
 }
 
-bool dfs_find_path(Node current, Node target, Node* path, int path_length)
-{
+bool dfs_find_path(Node current, Node target, Node* path, int path_length) {
+    // Check for NULL pointers
+    if (current == NULL || target == NULL) {
+        return false; // Handle NULL nodes gracefully
+    }
+
+    // Mark the current node as visited
     current->is_visited = true;
+    
+    // Add current node to path
     path[path_length] = current;
     path_length++;
 
-    if (current == target)
-    {
-        for (int i = 0; i < path_length; i++)
-        {
+    // If the current node is the target, print the path
+    if (current == target) {
+        for (int i = 0; i < path_length; i++) {
             printf("%s", path[i]->id);
-            if (i < path_length - 1)
-            {
+            if (i < path_length - 1) {
                 printf(", ");
             }
         }
@@ -298,22 +298,23 @@ bool dfs_find_path(Node current, Node target, Node* path, int path_length)
         return true;
     }
 
+    // Recursively visit each edge from the current node
     Edge edge = current->edges;
-    while (edge)
-    {
-        if (!edge->destination->is_visited)
-        {
-            if (dfs_find_path(edge->destination, target, path, path_length))
-            {
-                return true;
+    while (edge) {
+        // Check if the destination node is not visited
+        if (edge->destination != NULL && !edge->destination->is_visited) {
+            // Recursively search the path
+            if (dfs_find_path(edge->destination, target, path, path_length)) {
+                return true; // If found, propagate true up the call stack
             }
         }
-        edge = edge->next;
+        edge = edge->next; // Move to the next edge
     }
 
-    path_length--;
-    current->is_visited = false;
-    return false;
+    // Backtrack: remove current node from path and mark it as unvisited
+    path_length--; // Backtrack in path
+    current->is_visited = false; // Unmark the current node
+    return false; // Target not found from this path
 }
 
 bool miris_connected(Graph graph, const char* src_id, const char* dest_id)
@@ -356,50 +357,38 @@ bool miris_connected(Graph graph, const char* src_id, const char* dest_id)
     return found_path;
 }
 
-void miris_exit(Graph graph, const char* output_filename)
-{
+void miris_exit(Graph graph, const char* output_filename) {
     if (!graph) {
         return;
     }
 
     FILE* output_file = fopen(output_filename, "w");
-    if (!output_file)
-    {
+    if (!output_file) {
         fprintf(stderr, "Error: Could not open file %s for writing.\n", output_filename);
         return;
     }
 
-    size_t total_bytes_freed = 0;
-
-    for (size_t i = 0; i < graph->table_size; i++)
-    {
+    for (size_t i = 0; i < graph->table_size; i++) {
         Node current = graph->hash_table[i];
-        while (current) 
-        {
-            Node next_node = current->next_in_hash;
-
-            fprintf(output_file, "Node %s:\n", current->id);
-
-            if (current->id) {
-                total_bytes_freed += strlen(current->id) + 1;
-                free(current->id);
-                current->id = NULL;
+        while (current) {
+            // Free edges
+            Edge edge = current->edges;
+            while (edge) {
+                Edge next_edge = edge->next;
+                free(edge); // Free the edge
+                edge = next_edge; // Move to the next edge
             }
-
-            total_bytes_freed += sizeof(struct node);
+            
+            // Free the node
+            free(current->id);
+            Node next_node = current->next_in_hash;
             free(current);
-            current = next_node;
+            current = next_node; // Move to the next node in the list
         }
-        graph->hash_table[i] = NULL;
+        graph->hash_table[i] = NULL; // Clear the hash table
     }
 
-    total_bytes_freed += graph->table_size * sizeof(Node);
     free(graph->hash_table);
-    graph->hash_table = NULL;
-
     free(graph);
-    graph = NULL;
-
-    printf("%zu Bytes released\n", total_bytes_freed);
     fclose(output_file);
 }

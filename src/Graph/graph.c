@@ -57,6 +57,7 @@ Node node_insert(Graph graph, const char* id)
     new_node->id = strdup(id);
     new_node->edges = NULL;
     new_node->next_in_hash = graph->hash_table[index];
+    new_node->is_visited = false;
     graph->hash_table[index] = new_node;
 
     return new_node;
@@ -85,51 +86,49 @@ Node node_find(Graph graph, const char* id)
     return NULL;
 }
 
-void node_remove(Graph graph, const char *id)
-{
-    if (!graph || !id)
-    {
-        return;
+bool node_remove(Graph graph, const char* id) {
+    if (!graph || !id) {
+        return false;
     }
 
-    uint index = hash(id,graph->table_size);
-
-    Node current = graph->hash_table[index];
+    Node current = graph->hash_table[hash(id, graph->table_size)];
     Node prev = NULL;
 
-    while (current)
-    {
-        // Free Node
-
-        if (strcmp(current->id, id) == 0)
-        {
-            if (prev)
-            {
-                prev->next_in_hash = current->next_in_hash;
-            } else {
-                graph->hash_table[index] = current->next_in_hash;
+    while (current) {
+        if (strcmp(current->id, id) == 0) {
+            // Remove edges pointing to this node
+            for (size_t i = 0; i < graph->table_size; i++) {
+                Node other = graph->hash_table[i];
+                while (other) {
+                    edge_remove(graph, other->id, id); // Safely remove edges pointing to this node
+                    other = other->next_in_hash;
+                }
             }
 
-            // Free Edges
-
+            // Free edges
             Edge edge = current->edges;
             while (edge) {
-                Edge temp = edge;
-                edge = edge->next;
-                free(temp);
-                temp = NULL;
+                Edge next_edge = edge->next;
+                free(edge); // Free the edge
+                edge = next_edge; // Move to the next edge
             }
 
-            free(current->id);
-            current->id = NULL;
-            free(current);
-            current = NULL;
-            return;
+            // Remove the node from the hash table
+            if (prev) {
+                prev->next_in_hash = current->next_in_hash;
+            } else {
+                graph->hash_table[hash(id, graph->table_size)] = current->next_in_hash;
+            }
+
+            free(current->id); // Free the ID
+            free(current); // Free the node itself
+            return true;
         }
 
         prev = current;
         current = current->next_in_hash;
     }
+    return false; // Node not found
 }
 
 Edge edge_insert(Graph graph, const char* src_id, const char* dest_id, int amount, const char* date) 
@@ -163,17 +162,16 @@ Edge edge_insert(Graph graph, const char* src_id, const char* dest_id, int amoun
     return new_edge;
 }
 
-void edge_remove(Graph graph, const char *src_id, const char *dest_id)
+bool edge_remove(Graph graph, const char *src_id, const char *dest_id)
 {
     if (!graph || !src_id || !dest_id)
     {
-        return;
+        return false;
     }
 
     Node src_node = node_find(graph, src_id);
     if (!src_node) {
-        printf("Node %s not found\n", src_id);
-        return;
+        return false;
     }
 
     Edge current = src_node->edges;
@@ -181,6 +179,7 @@ void edge_remove(Graph graph, const char *src_id, const char *dest_id)
     while (current) {
         if (current->destination && strcmp(current->destination->id, dest_id) == 0)
         {
+            // Remove the edge by updating the pointers
             if (prev)
             {
                 prev->next = current->next;
@@ -188,14 +187,15 @@ void edge_remove(Graph graph, const char *src_id, const char *dest_id)
                 src_node->edges = current->next;
             }
 
-            free(current);
-            current = NULL;
-            return;
+            free(current);  // Free the edge memory
+            return true;    // Edge successfully removed
         }
 
         prev = current;
         current = current->next;
     }
+
+    return false; // Edge not found
 }
 
 bool edge_modify(Graph graph, const char *src_id, const char *dest_id, int old_amount, int new_amount, const char *old_date, const char *new_date)
