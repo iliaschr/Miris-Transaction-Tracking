@@ -204,7 +204,10 @@ static void dfs_traceflow(Node current, Node **path, int path_length,
                           int max_length) {
   if (path_length > 0) {
     for (int i = 0; i < path_length; i++) {
-      printf("%s, ", (*path)[i]->id);
+      printf("%s", (*path)[i]->id);
+      if (i < path_length - 1) {
+        printf(", ");
+      }
     }
     printf("\n");
   }
