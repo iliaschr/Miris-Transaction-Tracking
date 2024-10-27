@@ -124,9 +124,8 @@ bool miris_circlefind(Graph graph, const char *node_id) {
     return false;
   }
 
-  size_t max_path_length =
-      graph->table_size; // Decided its better to base the size of the path on
-                         // the table size to avoid reallocs
+  size_t max_path_length = graph->table_size; // Decided its better to base the size of the path on
+                                              // the table size to avoid reallocs
   Node *path = malloc(max_path_length * sizeof(Node));
   if (!path) {
     return false;
@@ -148,27 +147,37 @@ static void dfs_find_circles_with_min_sum(Node start, Node current, Node **path,
     return; // Exit if the path is too long.
   }
 
+  // Mark the current node as visited and add it to the path
   current->is_visited = true;
   (*path)[(*path_length)++] = current;
+
+  // Iterate through each edge of the current node
   Edge edge = current->edges;
   while (edge) {
-    if (edge->destination == start && edge->amount >= min_sum) {
-      int min_cycle_sum = edge->amount;
+    if (edge->destination == start) {
+      int total_sum = edge->amount;
       for (int i = 0; i < *path_length - 1; i++) {
-        if ((*path)[i]->edges && (*path)[i]->edges->amount < min_cycle_sum) {
-          min_cycle_sum = (*path)[i]->edges->amount;
+        Edge temp_edge = (*path)[i]->edges;
+        while (temp_edge) {
+          if (temp_edge->destination == (*path)[i + 1]) {
+            total_sum += temp_edge->amount;
+            break;
+          }
+          temp_edge = temp_edge->next;
         }
       }
 
-      if (min_cycle_sum >= min_sum) {
+      if (total_sum >= min_sum) {
         for (int i = 0; i < *path_length; i++) {
           printf("%s, ", (*path)[i]->id);
         }
-        printf("%s %d\n", start->id, min_cycle_sum);
+        printf("%s %d\n", start->id, total_sum);
       }
-    } else if (!edge->destination->is_visited && edge->amount >= min_sum) {
-      dfs_find_circles_with_min_sum(start, edge->destination, path, path_length,
-                                    min_sum, max_path_length);
+    } else if (!edge->destination->is_visited) {
+      if (edge->amount >= min_sum) {
+        dfs_find_circles_with_min_sum(start, edge->destination, path,
+                                      path_length, min_sum, max_path_length);
+      }
     }
     edge = edge->next;
   }
@@ -184,7 +193,7 @@ bool miris_findcircles(Graph graph, const char *node_id, int min_sum) {
     return false;
   }
 
-  size_t max_path_length = graph->table_size;
+  size_t max_path_length = graph->table_size; // Assuming this is sufficient to cover the entire graph
   Node *path = malloc(max_path_length * sizeof(Node));
   if (!path) {
     return false;
@@ -209,8 +218,10 @@ bool is_in_path(Node node, Node *path[], int path_length) {
 
 // Depth-first search to recursively trace the flow of transactions starting
 // from current.
-static void dfs_traceflow(Node current, Node **path, int path_length,
-                          int max_length) { // Max length is considere the number of edges for example 1 - 2 - 5 has a length of 2
+static void
+dfs_traceflow(Node current, Node **path, int path_length,
+              int max_length) { // Max length is considere the number of edges
+                                // for example 1 - 2 - 5 has a length of 2
   if (path_length > 0) {
     for (int i = 0; i < path_length; i++) {
       printf("%s", (*path)[i]->id);
