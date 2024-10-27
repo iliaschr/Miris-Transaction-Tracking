@@ -198,10 +198,19 @@ bool miris_findcircles(Graph graph, const char *node_id, int min_sum) {
   return true;
 }
 
+bool is_in_path(Node node, Node *path[], int path_length) {
+  for (int i = 0; i < path_length; i++) {
+    if ((*path)[i] == node) {
+      return true;
+    }
+  }
+  return false;
+}
+
 // Depth-first search to recursively trace the flow of transactions starting
 // from current.
 static void dfs_traceflow(Node current, Node **path, int path_length,
-                          int max_length) {
+                          int max_length) { // Max length is considere the number of edges for example 1 - 2 - 5 has a length of 2
   if (path_length > 0) {
     for (int i = 0; i < path_length; i++) {
       printf("%s", (*path)[i]->id);
@@ -212,16 +221,23 @@ static void dfs_traceflow(Node current, Node **path, int path_length,
     printf("\n");
   }
 
-  if (path_length >= max_length) {
+  if (path_length >= max_length + 1) {
     return;
   }
 
+  current->is_visited = true;
+
   Edge edge = current->edges;
   while (edge) {
-    (*path)[path_length] = edge->destination;
-    dfs_traceflow(edge->destination, path, path_length + 1, max_length);
+    Node destination = edge->destination;
+    if (!is_in_path(destination, path, path_length)) {
+      (*path)[path_length] = destination;
+      dfs_traceflow(destination, path, path_length + 1, max_length);
+    }
     edge = edge->next;
   }
+
+  current->is_visited = false;
 }
 
 bool miris_traceflow(Graph graph, const char *node_id, int max_length) {
