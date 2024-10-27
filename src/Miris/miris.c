@@ -154,35 +154,49 @@ static void dfs_find_circles_with_min_sum(Node start, Node current, Node **path,
   // Iterate through each edge of the current node
   Edge edge = current->edges;
   while (edge) {
-    if (edge->destination == start) {
-      int total_sum = edge->amount;
+    Node destination = edge->destination;
+    if (destination == start) { // A cycle has been detected
+      int min_edge_amount = edge->amount; // Start with the amount of the closing edge
+
+      // Check each edge in the path for the minimum amount greater than or equal to min_sum
+      bool valid_cycle = true;
+      if (min_edge_amount < min_sum) {
+        valid_cycle = false;
+      }
+
       for (int i = 0; i < *path_length - 1; i++) {
         Edge temp_edge = (*path)[i]->edges;
         while (temp_edge) {
           if (temp_edge->destination == (*path)[i + 1]) {
-            total_sum += temp_edge->amount;
+            if (temp_edge->amount < min_sum) {
+              valid_cycle = false; // Invalidate if any edge amount is below min_sum
+            }
+            if (temp_edge->amount < min_edge_amount) {
+              min_edge_amount = temp_edge->amount; // Update minimum amount
+            }
             break;
           }
           temp_edge = temp_edge->next;
         }
       }
 
-      if (total_sum >= min_sum) {
+      if (valid_cycle) {
+        // Print the cycle path
         for (int i = 0; i < *path_length; i++) {
           printf("%s, ", (*path)[i]->id);
         }
-        printf("%s %d\n", start->id, total_sum);
+        // Print the starting node again to complete the cycle and the minimum edge amount
+        printf("%s %d\n", start->id, min_edge_amount);
       }
     } else if (!edge->destination->is_visited) {
       if (edge->amount >= min_sum) {
-        dfs_find_circles_with_min_sum(start, edge->destination, path,
-                                      path_length, min_sum, max_path_length);
+        dfs_find_circles_with_min_sum(start, edge->destination, path, path_length, min_sum, max_path_length);
       }
     }
     edge = edge->next;
   }
 
-  (*path_length)--;
+  (*path_length)--; // Backtrack
   current->is_visited = false;
 }
 
