@@ -69,7 +69,7 @@ $(MIRIS_TEST_EXEC): $(MIRIS_TEST_OBJ) $(GRAPH_OBJ) $(MIRIS_OBJ)
 # Clean all compiled files, executables, and output .txt files
 clean:
 	rm -f $(MAIN_OBJ) $(GRAPH_OBJ) $(MIRIS_OBJ) $(GRAPH_TEST_OBJ) $(MIRIS_TEST_OBJ) \
-	$(MAIN_EXEC) $(GRAPH_TEST_EXEC) $(MIRIS_TEST_EXEC) $(TEST_SRC)/test_output.txt output.txt
+	$(MAIN_EXEC) $(GRAPH_TEST_EXEC) $(MIRIS_TEST_EXEC) test_output.txt output.txt
 
 # Pattern rule for compiling .o files from .c files
 %.o: %.c
