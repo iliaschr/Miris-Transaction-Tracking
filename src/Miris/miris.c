@@ -323,6 +323,8 @@ void miris_exit(Graph graph, const char *output_filename) {
     return;
   }
 
+  size_t bytes_released = 0;
+
   for (size_t i = 0; i < graph->table_size; i++) {
     Node current = graph->hash_table[i];
     while (current) {
@@ -343,19 +345,23 @@ void miris_exit(Graph graph, const char *output_filename) {
       Edge edge = current->edges;
       while (edge) {
         Edge next_edge = edge->next;
+        bytes_released += sizeof(Edge);
         free(edge);
         edge = next_edge;
       }
-
+      bytes_released += strlen(current->id) + 1;
       free(current->id);
       Node next_node = current->next_in_hash;
+      bytes_released += sizeof(Node);
       free(current);
       current = next_node;
     }
     graph->hash_table[i] = NULL; // Clear the hash table.
   }
-
+  bytes_released += sizeof(Node) * graph->table_size;
   free(graph->hash_table);
+  bytes_released += sizeof(Graph);
   free(graph);
   fclose(output_file);
+  printf("%zu Bytes released\n", bytes_released);
 }
