@@ -1,6 +1,14 @@
 
 # Miris
 
+## To DO:
+
+- [ ] Change size of array to be a prime number (example if it's 50 it should go to the closest prime number 53)
+
+- [ ] Add a pointer to a list of incoming edges to the node struct to achieve a better complexity for miris receiving 
+
+- [ ] Fix count lines to be double the size because in the worst case in a file with edges you might need to insert 2 nodes
+
 ## Γρήγορες σημειώσεις για το Makefile
 
 Για να χρησιμοποιήσεις το Makefile αυτού του έργου, ακολούθησε τα παρακάτω βήματα:
