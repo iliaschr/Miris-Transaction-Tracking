@@ -1,13 +1,16 @@
 
 # Miris
 
-## To DO:
+## To Do
 
-- [ ] Change size of array to be a prime number (example if it's 50 it should go to the closest prime number 53)
+- [Change hash table size to be the closest prime number](https://github.com/iliaschr/OSProject1/issues/1)  
+  _Adjust the hash table size to improve performance by setting it to the nearest prime number._
 
-- [ ] Add a pointer to a list of incoming edges to the node struct to achieve a better complexity for miris receiving 
+- [Add pointer to list of incoming edges in node struct](https://github.com/iliaschr/OSProject1/issues/2)  
+  _Introduce a pointer in the `node` struct for a list of incoming edges to optimize edge traversal complexity._
 
-- [ ] Fix count lines to be double the size because in the worst case in a file with edges you might need to insert 2 nodes
+- [Adjust hash table allocation to handle multiple nodes per line](https://github.com/iliaschr/OSProject1/issues/3)  
+  _Update hash table memory allocation to account for lines that introduce multiple nodes._
 
 ## Γρήγορες σημειώσεις για το Makefile
 
