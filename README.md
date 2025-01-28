@@ -1,6 +1,10 @@
 
 # Miris
 
+## Description
+
+Developed a Linux-based C application for managing and analyzing financial transactions between users using a dynamic directed multi-graph structure. The program supports efficient node and edge operations, cycle detection, connectivity analysis, and memory management. Implemented a custom hash table for O(1) access and ensured modularity with separate compilation and a Makefile.
+
 ## To Do
 
 - [Change hash table size to be the closest prime number](https://github.com/iliaschr/OSProject1/issues/1)  
