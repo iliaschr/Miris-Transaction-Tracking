@@ -16,275 +16,276 @@ Developed a Linux-based C application for managing and analyzing financial trans
 - [Adjust hash table allocation to handle multiple nodes per line](https://github.com/iliaschr/OSProject1/issues/3)  
   _Update hash table memory allocation to account for lines that introduce multiple nodes._
 
-## Γρήγορες σημειώσεις για το Makefile
+## Quick Notes on the Makefile
 
-Για να χρησιμοποιήσεις το Makefile αυτού του έργου, ακολούθησε τα παρακάτω βήματα:
+To use the Makefile of this project, follow the steps below:
 
-1. **Μετάβαση στον φάκελο src**
+1. **Navigate to the src folder**
    ```sh
    cd src/
 
-2. **Εκτέλεση των διαθέσιμων εντολών με το make**:
+2. **Run available commands using make**:
 
-- **`make all`**: Δημιουργεί το κύριο εκτελέσιμο πρόγραμμα καθώς και τα εκτελέσιμα αρχεία για τις δοκιμές (`graph_test_exec` και `miris_test_exec`).
-- **`make build_miris`**: Δημιουργεί και εκτελεί το κύριο πρόγραμμα `miris`. Χρησιμοποιείται για την εκτέλεση της βασικής εφαρμογής.
-- **`make run`**: Εκτελεί το κύριο πρόγραμμα `miris` (με προϋπόθεση ότι έχει ήδη δημιουργηθεί).
-- **`make graph_test`**: Δημιουργεί και εκτελεί τις δοκιμές για τη μονάδα `graph`.
-- **`make miris_test`**: Δημιουργεί και εκτελεί τις δοκιμές για τη μονάδα `miris`.
-- **`make valgrind_graph_test`**: Εκτελεί τις δοκιμές για το `graph` με το Valgrind για την ανίχνευση διαρροών μνήμης.
-- **`make valgrind_miris_test`**: Εκτελεί τις δοκιμές για το `miris` με το Valgrind για τον ίδιο σκοπό.
-- **`make valgrind_test`**: Εκτελεί και τις δύο δοκιμές (`graph` και `miris`) με Valgrind για πλήρη έλεγχο διαρροών μνήμης.
-- **`make clean`**: Καθαρίζει όλα τα παραγόμενα αρχεία (.o και εκτελέσιμα) και αρχεία εξόδου (`test_output.txt`, `output.txt`).
+- **make all**: Builds the main executable program as well as the executable files for the tests (graph_test_exec and miris_test_exec).
+- **make build_miris**: Builds and runs the main miris program. It is used for executing the main application.
+- **make run**: Runs the main miris program (provided it has already been built).
+- **make graph_test**: Builds and runs tests for the graph module.
+- **make miris_test**: Builds and runs tests for the miris module.
+- **make valgrind_graph_test**: Runs graph tests with Valgrind to detect memory leaks.
+- **make valgrind_miris_test**: Runs miris tests with Valgrind for the same purpose.
+- **make valgrind_test**: Runs both tests (graph and miris) with Valgrind for comprehensive memory leak checking.
+- **make clean**: Cleans all generated files (.o and executables) and output files (test_output.txt, output.txt).
 
 
 ## Graph.h
 
-Ξεκίνησα την εργασία δημιουργώντας μια γενική δομή graph. Μέσα σε αυτή με βάση το [Lecture Code από τις Δομές Δεδομένων](https://github.com/chatziko-k08/lecture-code/tree/master) έφτιαξα μερικά functions για να με βοηθήσουν με την διαχείριση του γράφου.
+I started by creating a general graph structure. Inside this, based on the [Lecture Code from Data Structures](https://github.com/chatziko-k08/lecture-code/tree/master), I created some functions to help manage the graph.
 
-### Σχετικά με το Graph.h
+### About Graph.h
 
-Στο graph.h, δηλώνονται οι δομές δεδομένων και οι συναρτήσεις που σχετίζονται με την διαχείριση του γράφου:
+In graph.h, the data structures and functions related to managing the graph are declared:
 
-- Edge: Μια ακμή του γράφου, περιλαμβάνει πληροφορίες για τον προορισμό, το ποσό και την ημερομηνία.
-- Node: Ένας κόμβος, περιλαμβάνει πληροφορίες σχετικά με το id (μοναδικό αναγνωριστικό του), τις ακμές που συνδέονται με αυτόν και την ένδειξη αν έχει επισκεφτεί από κάποιο dfs function (προστέθηκε μετά όταν έφτιαξα τα αρχεία miris).
-- Graph: Περιλαμβάνει ένα πίνακα κατακερματισμού για την αποθήκευση των κόμβων.
+- Edge: An edge of the graph, containing information about the destination, the amount, and the date.
+- Node: A node, containing information about its id (unique identifier), the edges connected to it, and a flag indicating if it has been visited by a dfs function (added later when I created the miris files).
+- Graph: Contains a hash table for storing the nodes.
 
 ## Graph.c
 
-Όλες οι υλοποιήσεις των λειτουργιών για την διαχείριση των graph.
+All implementations of functions for managing the graph.
 
-### Σχετικά με το Graph.c
+### About Graph.c
 
-1. **graph_create(Δημιουργία γράφου)**:
-    - Δημιουργεί έναν νέο γράφο με μέγεθος __initial_size__ (Προστέθηκε μετά για να διευκολύνει την δημιουργία γράφων από αρχείο .txt)
-    - Χρησιμοποιεί __malloc__ για να δεσμεύσει μνήμη για τον γράφο και __calloc__ για τον πίνακα κατακερματισμού, διασφαλίζοντας ότι οι αρχικές τιμές είναι __NULL__.
-    - Πολυπλοκότητα __O(1) για την προσπέλαση__ και __O(n) για την αρχικοποίηση__ (n το μέγεθος του πίνακα).
+1. **graph_create (Create Graph)**:
+    - Creates a new graph with an initial size __initial_size__ (added later to facilitate creating graphs from a .txt file).
+    - Uses __malloc__ to allocate memory for the graph and __calloc__ for the hash table, ensuring initial values are __NULL__.
+    - Complexity: __O(1) for access__ and __O(n) for initialization__ (n is the size of the array).
 
-2. **node_insert(Εισαγωγή Κόμβου)**:
-    - Ελέγχει αν υπάρχει ήδη ο κόμβος.
-    - Πολυπλοκότητα __O(1) για την εύρεση__ και __O(1) για την δημιουργία του κόμβου__.
+2. **node_insert (Insert Node)**:
+    - Checks if the node already exists.
+    - Complexity: __O(1) for finding__ and __O(1) for node creation__.
 
-3. **node_find(Εύρεση κόμβου)**:
-    - Επιστρέφει τον κόμβο με το συγκεκριμένο id αν υπάρχει.
-    - Χρησιμοποιεί την find_node_in_hash_table για να εντοπίσει τον κόμβο.
-    - Πολυπλοκότητα __O(1) για την αρχική πρόσβαση__ και __O(n) για την περιήγηση της λίστας__.
+3. **node_find (Find Node)**:
+    - Returns the node with the specified id if it exists.
+    - Uses find_node_in_hash_table to locate the node.
+    - Complexity: __O(1) for initial access__ and __O(n) for traversing the list__.
 
-4. **node_remove(Διαγραφή Κόμβου)**:
-    - Αφαιρεί τον κόμβο και τις ακμές που συνδέονται με αυτόν.
-    - Ελέγχει πρώτα αν υπάρχουν ακμές προς τον κόμβο που διαγράφεται.
-    - Πολυπλοκότητα __O(n) για την αναζήτηση edges__ και __O(1) για την αφαίρεση__.
+4. **node_remove (Remove Node)**:
+    - Removes the node and its connected edges.
+    - First checks if there are edges to the node being deleted.
+    - Complexity: __O(n) for searching edges__ and __O(1) for removal__.
 
-5. **edge_insert (Εισαγωγή Ακμής)**:
-    - Δημιουργεί μια νέα ακμή μεταξύ δύο κόμβων.
-    - Ελέγχει την ύπαρξη των κόμβων πηγής και προορισμού πριν την εισαγωγή.
-    - Πολυπλοκότητα __O(1) για την εισαγωγή αν υπάρχουν ήδη οι κόμβοι__.
+5. **edge_insert (Insert Edge)**:
+    - Creates a new edge between two nodes.
+    - Checks the existence of the source and destination nodes before insertion.
+    - Complexity: __O(1) for insertion if nodes already exist__.
 
-6. **edge_remove (Διαγραφή Ακμής)**:
-    - Αφαιρεί μια συγκεκριμένη ακμή μεταξύ δύο κόμβων.
-    - Πολυπλοκότητα __O(n) για την αναζήτηση της ακμής__.
+6. **edge_remove (Remove Edge)**:
+    - Removes a specific edge between two nodes.
+    - Complexity: __O(n) for searching the edge__.
 
-7. **edge_modify (Τροποποίηση Ακμής)**:
-    - Τροποποιεί την ποσότητα και την ημερομηνία μιας ακμής, ελέγχοντας αν οι κόμβοι και η ακμή υπάρχουν.
-    - Πολυπλοκότητα __O(n) για την αναζήτηση της ακμής__.
+7. **edge_modify (Modify Edge)**:
+    - Modifies the amount and date of an edge, checking if the nodes and edge exist.
+    - Complexity: __O(n) for searching the edge__.
 
-8. **graph_destroy (Καταστροφή Γράφου)**:
-    - Απελευθερώνει όλη τη μνήμη που έχει δεσμευτεί για τον γράφο και τους κόμβους του.
-    - Πολυπλοκότητα __O(n) για την απελευθέρωση των κόμβων και των ακμών__.
+8. **graph_destroy (Destroy Graph)**:
+    - Frees all memory allocated for the graph and its nodes.
+    - Complexity: __O(n) for freeing nodes and edges__.
 
-#### Static functions
-Αν και θα μπορούσαν να μην υπάρχουν, αναγκάστηκα να τα βάλω καθώς βοηθάνε στο να κάνουν πιο ευανάγνωστα μερικά functions.
+
+#### Static Functions
+Although they might not be necessary, I had to include them as they help make certain functions more readable.
 
 1. **find_node_in_hash_table**:
-    - Εδώ πρέπει να γίνει μια παρατήρηση σχετικά με την πολυπλοκότητα γενικά αφού κάνω malloc με initial_size στην graph η πιθανότητα να μην υπάρχει χώρος για κόμβους θα είναι μικρή, άρα στην ιδανική περίπτωση η πολυπλοκότητα είναι O(1).
+    - Note must be made regarding the complexity since I use malloc with initial_size in the graph. The likelihood of no space for nodes is low, so in the ideal case, the complexity is O(1).
 
 2. **remove_edges_to_node**:
-    - Αφαιρεί όλες τις ακμές που δείχνουν προς τον κόμβο.
-    - Χρησιμοποιεί την edge_remove.
-    - Πολυπλοκότητα __O(n)__ καθώς μπορεί να χρειαστεί να περιηγηθεί σε όλους τους κόμβους.
+    - Removes all edges pointing to the node.
+    - Uses edge_remove.
+    - Complexity: __O(n)__ as it may need to traverse all nodes.
 
 3. **free_node_edges**:
-    - Ελευθερώνει όλη τη μνήμη που έχει δεσμευτεί για τις ακμές ενός συγκεκριμένου κόμβου.
-    - Πολυπλοκότητα __O(m)__, όπου m ο αριθμός των ακμών.
+    - Frees all memory allocated for the edges of a specific node.
+    - Complexity: __O(m)__, where m is the number of edges.
 
 4. **remove_node_from_hash_table**:
-    - Απλή ενημέρωση των δεικτών άρα __O(1)__.
+    - Simple update of pointers, hence __O(1)__.
 
 5. **create_edge**: 
-    - Δημιουργεί και επιστρέφει μια νέα ακμή.
-    - Πολυπλοκότητα __Ο(1)__.
+    - Creates and returns a new edge.
+    - Complexity: __O(1)__.
 
 6. **find_edge**:
-    - Εντοπίζει μια ακμή που συνδέει δύο κόμβους.
-    - Πολυπλοκότητα __O(m)__.
+    - Finds an edge connecting two nodes.
+    - Complexity: __O(m)__.
 
 7. **remove_edge_from_list**:
-    - Πολυπλοκότητα __O(m)__.
+    - Complexity: __O(m)__.
 
-## Miris.h και Miris.c
+## Miris.h and Miris.c
 
-Δημιουργήθηκαν μετά τα graph.h και graph.c αρχεία για να βοηθήσει στην δημιουργία των functions που χρειάζονται για την εργασία.
+These were created after the graph.h and graph.c files to assist in creating the functions needed for the project.
 
-### Σχετικά με το Miris.c
+### About Miris.c
 
-1. **miris_insert (Εισαγωγή κόμβου)**:
-   - Δημιουργεί έναν νέο κόμβο στον γράφο. Εάν ο κόμβος υπάρχει ήδη, επιστρέφει αμέσως.
-   - Χρησιμοποιεί τη συνάρτηση `node_insert` για να διαχειριστεί την προσθήκη.
-   - Πολυπλοκότητα: __O(1)__ κατά μέσο όρο, εφόσον η κατανομή του hash table είναι καλή.
+1. **miris_insert (Insert Node)**:
+   - Creates a new node in the graph. If the node already exists, it returns immediately.
+   - Uses node_insert function to handle the addition.
+   - Complexity: __O(1)__ on average, provided the hash table is well-distributed.
 
-2. **miris_insert2 (Εισαγωγή ακμής)**:
-   - Δημιουργεί νέους κόμβους αν δεν υπάρχουν ήδη οι κόμβοι πηγής και προορισμού.
-   - Χρησιμοποιεί τη `edge_insert` για να προσθέσει την ακμή μεταξύ των δύο κόμβων.
-   - Πολυπλοκότητα: __O(1)__ για την εύρεση των κόμβων, __O(1)__ για την προσθήκη της ακμής αν δεν υπάρχουν συγκρούσεις.
+2. **miris_insert2 (Insert Edge)**:
+   - Creates new nodes if the source and destination nodes don't already exist.
+   - Uses edge_insert to add the edge between the two nodes.
+   - Complexity: __O(1)__ for finding the nodes, __O(1)__ for adding the edge if there are no collisions.
 
-3. **miris_delete (Διαγραφή κόμβου)**:
-   - Αφαιρεί έναν κόμβο από τον γράφο, καθώς και όλες τις ακμές που σχετίζονται με αυτόν.
-   - Ελέγχει πρώτα αν ο κόμβος υπάρχει.
-   - Πολυπλοκότητα: __O(n)__ για την αφαίρεση, όπου n είναι ο αριθμός των κόμβων που συνδέονται με τον συγκεκριμένο κόμβο.
+3. **miris_delete (Delete Node)**:
+   - Removes a node from the graph, as well as all edges connected to it.
+   - First checks if the node exists.
+   - Complexity: __O(n)__ for removal, where n is the number of nodes connected to the specific node.
 
-4. **miris_delete2 (Διαγραφή ακμής)**:
-   - Αφαιρεί μια συγκεκριμένη ακμή μεταξύ δύο κόμβων.
-   - Ελέγχει αν οι κόμβοι πηγής και προορισμού υπάρχουν.
-   - Πολυπλοκότητα: __O(n)__ στον χειρότερο των περιπτώσεων για την εύρεση της ακμής.
+4. **miris_delete2 (Delete Edge)**:
+   - Removes a specific edge between two nodes.
+   - Checks if the source and destination nodes exist.
+   - Complexity: __O(n)__ in the worst case for finding the edge.
 
-5. **miris_modify (Τροποποίηση ακμής)**:
-   - Τροποποιεί την ποσότητα και την ημερομηνία μιας ακμής αν βρεθεί.
-   - Ελέγχει αν οι κόμβοι πηγής και προορισμού υπάρχουν.
-   - Πολυπλοκότητα: __O(n)__ για την αναζήτηση της ακμής.
+5. **miris_modify (Modify Edge)**:
+   - Modifies the amount and date of an edge if found.
+   - Checks if the source and destination nodes exist.
+   - Complexity: __O(n)__ for searching the edge.
 
-6. **miris_find (Εύρεση κόμβου)**:
-   - Εμφανίζει όλες τις εξωτερικές ακμές που συνδέονται με έναν συγκεκριμένο κόμβο.
-   - Χρησιμοποιεί τη `node_find` για να βρει τον κόμβο.
-   - Πολυπλοκότητα: __O(m)__, όπου m είναι ο αριθμός των ακμών του κόμβου.
+6. **miris_find (Find Node)**:
+   - Displays all external edges connected to a specific node.
+   - Uses node_find to find the node.
+   - Complexity: __O(m)__, where m is the number of edges of the node.
 
-7. **miris_receiving (Εύρεση εισερχόμενων ακμών)**:
-   - Εμφανίζει όλες τις ακμές που οδηγούν στον κόμβο.
-   - Διερευνά ολόκληρο τον γράφο για να βρει ακμές που οδηγούν στο συγκεκριμένο κόμβο.
-   - Πολυπλοκότητα: __O(n*m)__, όπου n είναι ο αριθμός των κόμβων και m οι ακμές.
+7. **miris_receiving (Find Incoming Edges)**:
+   - Displays all edges leading to the node.
+   - Scans the entire graph to find edges pointing to the specified node.
+   - Complexity: __O(n*m)__, where n is the number of nodes and m is the edges.
 
-8. **miris_circlefind (Εύρεση κύκλων)**:
-   - Χρησιμοποιεί DFS για να ανακαλύψει κύκλους στον γράφο που ξεκινούν από έναν συγκεκριμένο κόμβο.
-   - Χρησιμοποιεί έναν πίνακα για την παρακολούθηση των κόμβων που έχουν επισκεφθεί.
-   - Πολυπλοκότητα: __O(n + m)__, όπου n είναι οι κόμβοι και m είναι οι ακμές.
+8. **miris_circlefind (Find Circles)**:
+   - Uses DFS to discover cycles in the graph starting from a specific node.
+   - Uses an array to track visited nodes.
+   - Complexity: __O(n + m)__, where n is the nodes and m is the edges.
 
-9. **miris_findcircles (Εύρεση κύκλων με ελάχιστο ποσό)**:
-   - Εφαρμόζει την DFS για να βρει κύκλους με βάση μια ελάχιστη τιμή ποσού για τις ακμές.
-   - Πολυπλοκότητα: __O(n + m)__, που μπορεί να επηρεαστεί από τον αριθμό των ακμών.
+9. **miris_findcircles (Find Cycles with Minimum Amount)**:
+   - Applies DFS to find cycles based on a minimum amount value for the edges.
+   - Complexity: __O(n + m)__, which can be affected by the number of edges.
 
-10. **miris_traceflow (Ιχνηλάτηση ροής)**:
-    - Διεξάγει DFS για να παρακολουθήσει τη ροή των συναλλαγών από έναν κόμβο.
-    - Πολυπλοκότητα: __O(n + m)__ για την πλήρη διαδρομή των συναλλαγών.
+10. **miris_traceflow (Trace Flow)**:
+    - Runs DFS to trace the flow of transactions from a node.
+    - Complexity: __O(n + m)__ for the full transaction path.
 
-11. **miris_connected (Ελέγχει αν υπάρχει σύνδεση)**:
-    - Ελέγχει αν υπάρχει διαδρομή μεταξύ δύο κόμβων.
-    - Πολυπλοκότητα: __O(n + m)__ λόγω του DFS.
+11. **miris_connected (Check Connection)**:
+    - Checks if there is a path between two nodes.
+    - Complexity: __O(n + m)__ due to DFS.
 
-12. **miris_exit (Έξοδος από το πρόγραμμα)**:
-    - Καταγράφει την κατάσταση του γράφου σε αρχείο εξόδου.
-    - Ελευθερώνει τη μνήμη των κόμβων και των ακμών.
-    - Πολυπλοκότητα: __O(n + m)__ λόγω της απελευθέρωσης μνήμης για τους κόμβους και τις ακμές.
+12. **miris_exit (Exit Program)**:
+    - Logs the state of the graph to an output file.
+    - Frees memory for nodes and edges.
+    - Complexity: __O(n + m)__ due to freeing memory for nodes and edges.
 
-### Σχετικά με τις Static Συναρτήσεις
+### About Static Functions
 
 1. **dfs_find_cycles**:
-   - Εκτελεί Depth-First Search (DFS) για να βρει κύκλους που ξεκινούν από έναν συγκεκριμένο κόμβο.
-   - Χρησιμοποιεί αναδρομή και μια δομή path για να παρακολουθήσει τους κόμβους που έχουν επισκεφθεί.
-   - Πολυπλοκότητα: __O(n + m)__.
+   - Performs Depth-First Search (DFS) to find cycles starting from a specific node.
+   - Uses recursion and a path structure to track visited nodes.
+   - Complexity: __O(n + m)__.
 
 2. **dfs_find_circles_with_min_sum**:
-   - Αναζητά κύκλους που πληρούν μια ελάχιστη τιμή ποσού για τις ακμές.
-   - Χρησιμοποιεί παρόμοια λογική με την `dfs_find_cycles`.
-   - Πολυπλοκότητα:__O(n + m)__.
+   - Searches for cycles that meet a minimum amount value for the edges.
+   - Uses similar logic as dfs_find_cycles.
+   - Complexity:__O(n + m)__.
 
 3. **dfs_traceflow**:
-   - Ιχνηλατεί τη ροή των συναλλαγών από τον τρέχοντα κόμβο, εκτυπώνοντας τους κόμβους της διαδρομής.
-   - Πολυπλοκότητα: __O(n + m)__.
+   - Traces the flow of transactions from the current node, printing the nodes in the path.
+   - Complexity: __O(n + m)__.
 
 4. **dfs_find_path**:
-   - Βρίσκει τη διαδρομή από τον τρέχοντα κόμβο προς τον προορισμό.
-   - Πολυπλοκότητα: __O(n + m)__.
+   - Finds the path from the current node to the destination.
+   - Complexity: __O(n + m)__.
 
 
-# Main aka. Miris the main program
+# Main aka. Miris the Main Program
 
-### Σχετικά με το Main.c
+### About Main.c
 
-1. **load_graph (Φόρτωση γράφου από αρχείο)**:
-   - Διαβάζει δεδομένα από ένα αρχείο και εισάγει κόμβους και ακμές στον γράφο.
-   - Χρησιμοποιεί `fscanf` για να διαβάσει τις τιμές και `miris_insert` και `miris_insert2` για να προσθέσει τους κόμβους και τις ακμές.
-   - Πολυπλοκότητα: O(n), όπου n είναι ο αριθμός των γραμμών στο αρχείο.
+1. **load_graph (Load Graph from File)**:
+   - Reads data from a file and inserts nodes and edges into the graph.
+   - Uses fscanf to read the values and miris_insert and miris_insert2 to add the nodes and edges.
+   - Complexity: O(n), where n is the number of lines in the file.
 
-2. **count_lines (Καταμέτρηση γραμμών)**:
-   - Επιστρέφει τον αριθμό των γραμμών σε ένα αρχείο για να καθορίσει το μέγεθος του γράφου.
-   - Χρησιμοποιεί `fgetc` για να διαβάσει το αρχείο χαρακτήρα προς χαρακτήρα.
-   - Πολυπλοκότητα: O(n), όπου n είναι ο αριθμός των χαρακτήρων στο αρχείο.
+2. **count_lines (Count Lines)**:
+   - Returns the number of lines in a file to determine the size of the graph.
+   - Uses fgetc to read the file character by character.
+   - Complexity: O(n), where n is the number of characters in the file.
 
-3. **handle_insert (Διαχείριση εντολής εισαγωγής κόμβων)**:
-   - Χειρίζεται την εισαγωγή πολλών κόμβων.
-   - Χρησιμοποιεί `miris_insert` για να προσθέσει κάθε κόμβο.
-   - Πολυπλοκότητα: O(m), όπου m είναι ο αριθμός των κόμβων που εισάγονται.
+3. **handle_insert (Handle Insert Command)**:
+   - Handles the insertion of multiple nodes.
+   - Uses miris_insert to add each node.
+   - Complexity: O(m), where m is the number of nodes being inserted.
 
-4. **handle_insert2 (Διαχείριση εντολής εισαγωγής ακμών)**:
-   - Χειρίζεται την εισαγωγή μιας ακμής μεταξύ δύο κόμβων.
-   - Χρησιμοποιεί `miris_insert2` για να προσθέσει την ακμή.
-   - Πολυπλοκότητα: O(1) αν δεν υπάρχουν συγκρούσεις.
+4. **handle_insert2 (Handle Insert Edge Command)**:
+   - Handles the insertion of an edge between two nodes.
+   - Uses miris_insert2 to add the edge.
+   - Complexity: O(1) if there are no collisions.
 
-5. **handle_delete (Διαχείριση εντολής διαγραφής κόμβων)**:
-   - Χειρίζεται τη διαγραφή πολλών κόμβων.
-   - Χρησιμοποιεί `miris_delete` για να διαγράψει κάθε κόμβο.
-   - Πολυπλοκότητα: O(m), όπου m είναι ο αριθμός των κόμβων που διαγράφονται.
+5. **handle_delete (Handle Delete Command)**:
+   - Handles the deletion of multiple nodes.
+   - Uses miris_delete to delete each node.
+   - Complexity: O(m), where m is the number of nodes being deleted.
 
-6. **handle_delete2 (Διαχείριση εντολής διαγραφής ακμών)**:
-   - Χειρίζεται τη διαγραφή μιας συγκεκριμένης ακμής.
-   - Χρησιμοποιεί `miris_delete2` για να διαγράψει την ακμή.
-   - Πολυπλοκότητα: O(1) αν η ακμή υπάρχει.
+6. **handle_delete2 (Handle Delete Edge Command)**:
+   - Handles the deletion of a specific edge.
+   - Uses miris_delete2 to delete the edge.
+   - Complexity: O(1) if the edge exists.
 
-7. **handle_modify (Διαχείριση εντολής τροποποίησης ακμών)**:
-   - Χειρίζεται την τροποποίηση μιας ακμής.
-   - Χρησιμοποιεί `miris_modify` για να τροποποιήσει την ακμή.
-   - Πολυπλοκότητα: O(n) για την αναζήτηση της ακμής.
+7. **handle_modify (Handle Modify Edge Command)**:
+   - Handles the modification of an edge.
+   - Uses miris_modify to modify the edge.
+   - Complexity: O(n) for searching the edge.
 
-8. **execute_command (Εκτέλεση εντολών)**:
-   - Χειρίζεται την εκτέλεση των εντολών που εισάγει ο χρήστης.
-   - Χρησιμοποιεί τις προηγούμενες συναρτήσεις χειρισμού για να εκτελέσει την κατάλληλη εντολή.
-   - Πολυπλοκότητα: Εξαρτάται από την εντολή που εκτελείται.
+8. **execute_command (Execute Commands)**:
+   - Handles the execution of commands entered by the user.
+   - Uses the previously mentioned handler functions to execute the appropriate command.
+   - Complexity: Depends on the command being executed.
 
-9. **main (Κύρια λειτουργία)**:
-   - Διαχειρίζεται τις παραμέτρους εισόδου και εκκινεί το πρόγραμμα.
-   - Φορτώνει τον γράφο από ένα αρχείο αν παρέχεται.
-   - Εμφανίζει ένα prompt για να δέχεται εντολές από τον χρήστη.
-   - Πολυπλοκότητα: O(n) για τη φόρτωση του γράφου.
+9. **main (Main Function)**:
+   - Manages input parameters and starts the program.
+   - Loads the graph from a file if provided.
+   - Displays a prompt to accept commands from the user.
+   - Complexity: O(n) for loading the graph.
 
-### Σχετικά με τις Static Συναρτήσεις
+### About Static Functions
 
 1. **handle_insert**:
-   - Χειρίζεται την εισαγωγή κόμβων από τις εντολές του χρήστη.
+   - Handles the insertion of nodes from user commands.
 
 2. **handle_insert2**:
-   - Χειρίζεται την εισαγωγή ακμών από τις εντολές του χρήστη.
+   - Handles the insertion of edges from user commands.
 
 3. **handle_delete**:
-   - Χειρίζεται τη διαγραφή κόμβων από τις εντολές του χρήστη.
+   - Handles the deletion of nodes from user commands.
 
 4. **handle_delete2**:
-   - Χειρίζεται τη διαγραφή ακμών από τις εντολές του χρήστη.
+   - Handles the deletion of edges from user commands.
 
 5. **handle_modify**:
-   - Χειρίζεται την τροποποίηση ακμών από τις εντολές του χρήστη.
+   - Handles the modification of edges from user commands.
 
 
 ## Tests
 
-Χρησιμοποίησα το `acutest.h` που είχαμε μάθει στις Δομές Δεδομένων. Τα test είναι αρκετά γενικά και γράφτηκαν όσο έγραφα τον κώδικα για να σιγουρευτώ ότι όλα πάνε καλά.
+I used the `acutest.h` we learned in Data Structures. The tests are fairly general and were written as I wrote the code to ensure everything was functioning correctly.
 
 ## Debugging
 
-Όταν συναντούσα segmentation fault (core dumped) έκανα Debugging με gdb.
+When I encountered segmentation faults (core dumped), I did debugging using gdb.
 
-Επίσης, χρησιμοποίησα και valgrind για να αποφύγω τα leaks.
+I also used valgrind to avoid memory leaks.
 
 ## Format
 
-Το format έγινε για κάθε αρχείο με την εντολή `clang-format -i ...`.
+The format for each file was done using the command `clang-format -i ...`.
 
 ## Specification for miris command generated-output:
 In case of unrecognized command:
